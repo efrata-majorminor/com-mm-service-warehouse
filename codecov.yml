@@ -1,0 +1,4 @@
+ignore:
+  - "Com.MM.Service.Warehouse.Lib/Migrations" 
+  - "Com.MM.Service.Warehouse.WebApi/Startup.cs"
+  - "Com.MM.Service.Warehouse.WebApi/SchedulerJobs/MasterRegistry.cs"

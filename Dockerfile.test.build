@@ -1,0 +1,10 @@
+FROM microsoft/aspnetcore-build:2.0.2
+WORKDIR /app
+
+COPY Com.MM.Service.Warehouse.Lib/*.csproj ./Com.MM.Service.Warehouse.Lib/
+COPY Com.MM.Service.Warehouse.WebApi/*.csproj ./Com.MM.Service.Warehouse.WebApi/
+RUN dotnet restore ./Com.MM.Service.Warehouse.WebApi/
+
+COPY Com.MM.Service.Warehouse.Lib/. ./Com.MM.Service.Warehouse.Lib/
+COPY Com.MM.Service.Warehouse.WebApi/. ./Com.MM.Service.Warehouse.WebApi/
+RUN dotnet publish ./Com.MM.Service.Warehouse.WebApi/ --output /out/ --configuration Release
