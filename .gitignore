@@ -272,7 +272,7 @@ __pycache__/
 # tools/
 
 */appsettings.json
-Com.DanLiris.Service.Purchasing.WebApi/Properties/launchSettings.json
+Com.MajorMinor.Service.Warehouse.WebApi/Properties/launchSettings.json
 
 ### VisualStudioCode ###
 .vscode/*
