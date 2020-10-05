@@ -16,5 +16,7 @@ namespace Com.MM.Service.Warehouse.WebApi.Helpers
         public const string OK_MESSAGE = "Ok";
         public const string NOT_FOUND_MESSAGE = "Data Not Found";
         public const string BAD_REQUEST_MESSAGE = "Data does not pass validation";
+        public const string CSV_ERROR_MESSAGE = "The header row of CSV file is not valid";
+        public const string NO_FILE_ERROR_MESSAGE = "File not found";
     }
 }

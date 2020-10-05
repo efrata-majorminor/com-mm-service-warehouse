@@ -6,7 +6,6 @@ using Com.MM.Service.Warehouse.Lib.Models.SPKDocsModel;
 using Com.Moonlay.NetCore.Lib;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.IO;
 using System.Threading.Tasks;
 using Com.MM.Service.Warehouse.Lib.ViewModels.SpkDocsViewModel;
 using Com.Moonlay.Models;
@@ -16,8 +15,14 @@ using Com.MM.Service.Warehouse.Lib.Interfaces;
 using Com.MM.Service.Warehouse.Lib.ViewModels.NewIntegrationViewModel;
 using System.Net.Http;
 using System.Text;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
+using System.Dynamic;
 using Com.MM.Service.Warehouse.Lib.Models.TransferModel;
 using Com.MM.Service.Warehouse.Lib.Interfaces.PkbjInterfaces;
+using Com.MM.Service.Warehouse.Lib.Serializers;
+using Com.MajorMinor.Service.Warehouse.Lib.ViewModels.SpkDocsViewModel;
+using Microsoft.Extensions.Primitives;
 
 namespace Com.MM.Service.Warehouse.Lib.Facades
 {
@@ -196,6 +201,285 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
                 ItemCoreViewModel viewModel = JsonConvert.DeserializeObject<ItemCoreViewModel>(result.GetValueOrDefault("data").ToString());
                 return viewModel;//.Where(x => x.dataDestination[0].name == name && x.dataDestination[0].code == code).FirstOrDefault();
                 //throw new Exception(string.Format("{0}, {1}, {2}", response.StatusCode, response.Content, APIEndpoint.Purchasing));
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public List<string> CsvHeader { get; } = new List<string>()
+        {
+            "PackingList", "Password", "Barcode", "Name", "Size", "Price", "UOM", "QTY", "RO", "HPP"
+        };
+
+
+
+        public sealed class PkbjMap : CsvHelper.Configuration.ClassMap<SPKDocsCsvViewModel>
+        {
+            public PkbjMap()
+            {
+                Map(p => p.PackingList).Index(0);
+                Map(p => p.Password).Index(1);
+                Map(p => p.code).Index(2);
+                Map(p => p.name).Index(3);
+                Map(p => p.size).Index(4);
+                Map(p => p.domesticSale).Index(5).TypeConverter<StringConverter>();
+                Map(p => p.uom).Index(6);
+                Map(p => p.quantity).Index(7).TypeConverter<StringConverter>();
+                Map(p => p.articleRealizationOrder).Index(8);
+                Map(p => p.domesticCOGS).Index(9).TypeConverter<StringConverter>();
+            }
+        }
+
+        public Tuple<bool, List<object>> UploadValidate(ref List<SPKDocsCsvViewModel> Data, List<KeyValuePair<string, StringValues>> Body)
+        {
+            List<object> ErrorList = new List<object>();
+            string ErrorMessage;
+            bool Valid = true;
+            // Currency currency = null;
+            //Uom uom = null;
+
+            foreach (SPKDocsCsvViewModel productVM in Data)
+            {
+                ErrorMessage = "";
+
+                if (string.IsNullOrWhiteSpace(productVM.PackingList))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "PackingList tidak boleh kosong, ");
+                }
+
+                if (string.IsNullOrWhiteSpace(productVM.Password))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Password tidak boleh kosong, ");
+                }
+
+                if (string.IsNullOrWhiteSpace(productVM.code))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Barcode tidak boleh kosong, ");
+                }
+                else if (Data.Any(d => d != productVM && d.code.Equals(productVM.code)))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Barcode tidak boleh duplikat, ");
+                }
+
+                if (string.IsNullOrWhiteSpace(productVM.name))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Nama tidak boleh kosong, ");
+                }
+                else if (Data.Any(d => d != productVM && d.name.Equals(productVM.name)))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Nama tidak boleh duplikat, ");
+                }
+
+                if (string.IsNullOrWhiteSpace(productVM.size))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Size tidak boleh kosong, ");
+                }
+
+                //if (string.IsNullOrWhiteSpace(productVM.Currency.Code))
+                //{
+                //    ErrorMessage = string.Concat(ErrorMessage, "Mata Uang tidak boleh kosong, ");
+                //}
+                decimal domesticSale = 0;
+                if (string.IsNullOrWhiteSpace(productVM.domesticSale))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Harga tidak boleh kosong, ");
+                }
+                else if (!decimal.TryParse(productVM.domesticSale, out domesticSale))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Harga harus numerik, ");
+                }
+                else if (domesticSale < 0)
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Harga harus lebih besar dari 0, ");
+                }
+                else
+                {
+                    string[] domesticSaleSplit = productVM.domesticSale.Split('.');
+                    if (domesticSaleSplit.Count().Equals(2) && domesticSaleSplit[1].Length > 2)
+                    {
+                        ErrorMessage = string.Concat(ErrorMessage, "Harga maksimal memiliki 2 digit dibelakang koma, ");
+                    }
+                }
+
+
+                if (string.IsNullOrWhiteSpace(productVM.uom))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Satuan tidak boleh kosong, ");
+                }
+
+                decimal quantity = 0;
+                if (string.IsNullOrWhiteSpace(productVM.quantity))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Quantity tidak boleh kosong, ");
+                }
+                else if (!decimal.TryParse(productVM.quantity, out quantity))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Quantity harus numerik, ");
+                }
+                else if (quantity < 0)
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "Quantity harus lebih besar dari 0, ");
+                }
+                //else
+                //{
+                //    string[] domesticSaleSplit = productVM.domesticSale.Split('.');
+                //    if (domesticSaleSplit.Count().Equals(2) && domesticSaleSplit[1].Length > 2)
+                //    {
+                //        ErrorMessage = string.Concat(ErrorMessage, "Harga maksimal memiliki 2 digit dibelakang koma, ");
+                //    }
+                //}
+
+                if (string.IsNullOrWhiteSpace(productVM.articleRealizationOrder))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "RO tidak boleh kosong, ");
+                }
+
+                decimal domesticCOGS = 0;
+                if (string.IsNullOrWhiteSpace(productVM.domesticCOGS))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "HPP tidak boleh kosong, ");
+                }
+                else if (!decimal.TryParse(productVM.domesticCOGS, out domesticCOGS))
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "HPP harus numerik, ");
+                }
+                else if (domesticCOGS < 0)
+                {
+                    ErrorMessage = string.Concat(ErrorMessage, "HPP harus lebih besar dari 0, ");
+                }
+                else
+                {
+                    string[] domesticCOGSSplit = productVM.domesticCOGS.Split('.');
+                    if (domesticCOGSSplit.Count().Equals(2) && domesticCOGSSplit[1].Length > 2)
+                    {
+                        ErrorMessage = string.Concat(ErrorMessage, "HPP maksimal memiliki 2 digit dibelakang koma, ");
+                    }
+                }
+
+                if (string.IsNullOrEmpty(ErrorMessage))
+                {
+                    
+                }
+
+                if (string.IsNullOrEmpty(ErrorMessage))
+                {
+                    productVM.quantity = quantity;
+                    productVM.domesticCOGS = domesticCOGS;
+                    productVM.domesticSale = domesticSale;
+                    
+                }
+                else
+                {
+                    ErrorMessage = ErrorMessage.Remove(ErrorMessage.Length - 2);
+                    var Error = new ExpandoObject() as IDictionary<string, object>;
+
+                    Error.Add("PackingList", productVM.PackingList);
+                    Error.Add("Password", productVM.Password);
+                    Error.Add("Barcode", productVM.code);
+                    Error.Add("Name", productVM.name);
+                    Error.Add("Size", productVM.size);
+                    Error.Add("Price", productVM.domesticSale);
+                    Error.Add("UOM", productVM.uom);
+                    Error.Add("Qty", productVM.quantity);
+                    Error.Add("RO", productVM.articleRealizationOrder);
+                    Error.Add("HPP", productVM.domesticCOGS);
+                    Error.Add("Error", ErrorMessage);
+
+                    ErrorList.Add(Error);
+                }
+            }
+
+            if (ErrorList.Count > 0)
+            {
+                Valid = false;
+            }
+
+            return Tuple.Create(Valid, ErrorList);
+        }
+
+        public async Task UploadData(SPKDocs data, string username)
+        {
+            foreach (var i in data.Items)
+            {
+                EntityExtension.FlagForCreate(i, username, USER_AGENT);
+            }
+            EntityExtension.FlagForCreate(data, username, USER_AGENT);
+            dbSet.Add(data);
+            var result = await dbContext.SaveChangesAsync();
+            //await BulkInsert(data, username);
+        }
+
+        public SPKDocsViewModel MapToViewModel(List<SPKDocsCsvViewModel> csv, double source, string sourcec, string sourcen, double destination, string destinationc, string destinationn, DateTimeOffset date)
+        {
+
+            List<SPKDocsItemViewModel> sPKDocsItems = new List<SPKDocsItemViewModel>();
+            //var itemx = GetItem();
+
+            foreach (var i in csv)
+            {
+                var itemx = GetItem(i.code);
+                sPKDocsItems.Add(new SPKDocsItemViewModel
+                {
+                    item = new ViewModels.NewIntegrationViewModel.ItemViewModel
+                    {
+                        articleRealizationOrder = i.articleRealizationOrder,
+                        _id = itemx.Id,
+                        code = i.code,
+                        domesticCOGS = Convert.ToDouble(i.domesticCOGS),
+                        domesticSale = Convert.ToDouble(i.domesticSale),
+                        name = i.name,
+                        size = i.size,
+                        uom = i.uom
+
+                    },
+                    quantity = Convert.ToDouble(i.quantity),
+                    remark = ""
+                });
+            }
+
+            SPKDocsViewModel sPKDocsViews = new SPKDocsViewModel
+            {
+                code = GenerateCode("MM-PK/PBJ"),
+                packingList = csv.FirstOrDefault().PackingList,
+                password = csv.FirstOrDefault().Password,
+                reference = csv.FirstOrDefault().PackingList,
+                isDistributed = true,
+                isReceived = false,
+                Weight = 0,
+                source = new SourceViewModel
+                {
+                    //_id = source.ToString(),
+                    code = sourcec,
+                    name = sourcen
+                },
+                destination = new DestinationViewModel
+                {
+                    //_id = destination.ToString(),
+                    code = destinationc,
+                    name = destinationn
+                },
+
+                items = sPKDocsItems
+            };
+
+            return sPKDocsViews;
+        }
+
+        private SPKDocsItemViewModel GetItem(string itemCode)
+        {
+            string itemUri = "items/finished-goods/byCode";
+            IHttpClientService httpClient = (IHttpClientService)serviceProvider.GetService(typeof(IHttpClientService));
+
+            var response = httpClient.GetAsync($"{APIEndpoint.Core}{itemUri}/{itemCode}").Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = response.Content.ReadAsStringAsync().Result;
+                Dictionary<string, object> result = JsonConvert.DeserializeObject<Dictionary<string, object>>(content);
+                SPKDocsItemViewModel viewModel = JsonConvert.DeserializeObject<SPKDocsItemViewModel>(result.GetValueOrDefault("data").ToString());
+                //return viewModel.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Date < doDate.AddDays(1)); ;
+                return viewModel;
             }
             else
             {
