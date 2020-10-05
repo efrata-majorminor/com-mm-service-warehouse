@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Com.MM.Service.Warehouse.Lib\Com.MajorMinor.Service.Warehouse.Lib.csproj" />
+    <ProjectReference Include="..\Com.MajorMinor.Service.Warehouse.Lib\Com.MajorMinor.Service.Warehouse.Lib.csproj" />
   </ItemGroup>
 
 </Project>

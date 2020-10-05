@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Com.MM.Service.Warehouse.Lib\Com.MajorMinor.Service.Warehouse.Lib.csproj" />
-    <ProjectReference Include="..\Com.MM.Service.Warehouse.WebApi\Com.MajorMinor.Service.Warehouse.WebApi.csproj" />
+    <ProjectReference Include="..\Com.MajorMinor.Service.Warehouse.Lib\Com.MajorMinor.Service.Warehouse.Lib.csproj" />
+    <ProjectReference Include="..\Com.MajorMinor.Service.Warehouse.WebApi\Com.MajorMinor.Service.Warehouse.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
