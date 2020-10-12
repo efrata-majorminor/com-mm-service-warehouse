@@ -164,5 +164,37 @@ namespace Com.MM.Service.Warehouse.WebApi.Controllers.v1.InventoriesControlles
                 return StatusCode(General.INTERNAL_ERROR_STATUS_CODE, Result);
             }
         }
+
+        [HttpGet("stock-pos")]
+        public IActionResult GetStockForPOS(string source, string itemId)
+        {
+
+
+            string accept = Request.Headers["Accept"];
+            try
+            {
+
+                var data = facade.getStockPOS(source, itemId);
+                var model = mapper.Map<InventoryViewModel>(data);
+
+
+                return Ok(new
+                {
+                    apiVersion = ApiVersion,
+                    data = model,
+                    info = new { count = 1, total = 1 },
+
+                    message = General.OK_MESSAGE,
+                    statusCode = General.OK_STATUS_CODE
+                });
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, General.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(General.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
     }
 }

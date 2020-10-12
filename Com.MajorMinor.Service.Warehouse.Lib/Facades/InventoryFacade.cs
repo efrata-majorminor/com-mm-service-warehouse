@@ -205,6 +205,13 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
         }
         #endregion
 
+        public Inventory getStockPOS(string sourcecode, string itemCode)
+        {
+            var inventory = dbSet.Where(x => x.StorageCode == sourcecode && x.ItemCode == itemCode).FirstOrDefault();
+            return inventory;
+
+        }
+
 
         #region Monitoring Inventory Movements
         public IQueryable<InventoryMovementsReportViewModel> GetMovementQuery(string storageId, string itemCode, string info, int offset, string username)

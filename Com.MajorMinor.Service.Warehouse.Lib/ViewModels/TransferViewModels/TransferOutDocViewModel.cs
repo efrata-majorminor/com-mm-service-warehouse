@@ -69,11 +69,11 @@ namespace Com.MM.Service.Warehouse.Lib.ViewModels.TransferViewModels
                         itemError += "quantity: 'Qty can't more than inven quantity', ";
                     }
 
-                    if(item.remark == null || item.remark == "")
-                    {
-                        itemErrorCount++;
-                        itemError += "remark: 'remark is required', ";
-                    }
+                    //if(item.remark == null || item.remark == "")
+                    //{
+                    //    itemErrorCount++;
+                    //    itemError += "remark: 'remark is required', ";
+                    //}
 
                     itemError += "}, ";
                 }

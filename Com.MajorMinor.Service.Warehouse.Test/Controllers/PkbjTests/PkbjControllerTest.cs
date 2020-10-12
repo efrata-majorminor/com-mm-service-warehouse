@@ -283,7 +283,7 @@ namespace Com.MM.Service.Warehouse.Test.Controllers.PkbjTests
             mockMapper.Setup(x => x.Map<SPKDocs>(It.IsAny<PkbjByUserViewModel>()))
                 .Returns(sPK);
 
-            var mockFacade = new Mock<IPkpbjFacade();
+            var mockFacade = new Mock<IPkpbjFacade>();
             mockFacade.Setup(x => x.Create(It.IsAny<SPKDocs>(), "unittestusername", 7))
                .ReturnsAsync(1);
 

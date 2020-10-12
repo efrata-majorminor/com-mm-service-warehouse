@@ -173,5 +173,42 @@ namespace Com.MM.Service.Warehouse.WebApi.Controllers.v1.Transfer
                 return StatusCode(General.INTERNAL_ERROR_STATUS_CODE, Result);
             }
         }
+        [HttpPost("for-pos")]
+        public async Task<IActionResult> CreateForPos([FromBody]TransferInDocViewModel ViewModel)
+        {
+            try
+            {
+                identityService.Username = User.Claims.Single(p => p.Type.Equals("username")).Value;
+
+                IValidateService validateService = (IValidateService)serviceProvider.GetService(typeof(IValidateService));
+
+               // validateService.Validate(ViewModel);
+
+                var model = mapper.Map<TransferInDoc>(ViewModel);
+
+                await facade.CreateForPos(model, identityService.Username);
+
+                // await facade.Crea
+
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, General.CREATED_STATUS_CODE, General.OK_MESSAGE)
+                    .Ok();
+                return Created(String.Concat(Request.Path, "/", 0), Result);
+            }
+            catch (ServiceValidationExeption e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, General.BAD_REQUEST_STATUS_CODE, General.BAD_REQUEST_MESSAGE)
+                    .Fail(e);
+                return BadRequest(Result);
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, General.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(General.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
     }
 }
