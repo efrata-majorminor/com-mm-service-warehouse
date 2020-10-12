@@ -414,6 +414,65 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
 
             return Created;
         }
+        public async Task<int> CreateForPOS(TransferOutDoc model2, string username, int clientTimeZoneOffset = 7)
+        {
+            int Created = 0;
+
+            using (var transaction = this.dbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    EntityExtension.FlagForCreate(model2, username, USER_AGENT);
+                    foreach (var i in model2.Items)
+                    {
+                        var inventorymovement = new InventoryMovement();
+                        var inven = dbContext.Inventories.Where(x => x.ItemId == i.ItemId && x.StorageId == model2.SourceId).FirstOrDefault();
+                        if (inven != null)
+                        {
+                            inventorymovement.Before = inven.Quantity;
+                            inven.Quantity = inven.Quantity - i.Quantity;
+                        }
+                        inventorymovement.After = inventorymovement.Before - i.Quantity;
+                        inventorymovement.Date = DateTimeOffset.UtcNow;
+                        inventorymovement.ItemCode = i.ItemCode;
+                        inventorymovement.ItemDomesticCOGS = i.DomesticCOGS;
+                        inventorymovement.ItemDomesticRetail = i.DomesticRetail;
+                        inventorymovement.ItemDomesticWholeSale = i.DomesticWholeSale;
+                        inventorymovement.ItemDomesticSale = i.DomesticSale;
+                        inventorymovement.ItemId = i.ItemId;
+                        inventorymovement.ItemInternationalCOGS = 0;
+                        inventorymovement.ItemInternationalRetail = 0;
+                        inventorymovement.ItemInternationalSale = 0;
+                        inventorymovement.ItemInternationalWholeSale = 0;
+                        inventorymovement.ItemName = i.ItemName;
+                        inventorymovement.ItemSize = i.Size;
+                        inventorymovement.ItemUom = i.Uom;
+                        inventorymovement.Quantity = i.Quantity;
+                        inventorymovement.StorageCode = model2.SourceCode;
+                        inventorymovement.StorageId = model2.SourceId;
+                        inventorymovement.StorageName = model2.SourceName;
+                        inventorymovement.Type = "OUT";
+                        inventorymovement.Reference = model2.Code;
+                        inventorymovement.Remark = model2.Remark;
+                        inventorymovement.StorageIsCentral = model2.SourceName.Contains("GUDANG") ? true : false;
+                        EntityExtension.FlagForCreate(inventorymovement, username, USER_AGENT);
+                        dbSetInventoryMovement.Add(inventorymovement);
+
+                        EntityExtension.FlagForCreate(i, username, USER_AGENT);
+                    }
+                    dbSet.Add(model2);
+                    Created = await dbContext.SaveChangesAsync();
+                    transaction.Commit();
+
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw new Exception(e.Message);
+                }
+            }
+            return Created;
+        }
         public TransferOutDoc ReadById(int id)
         {
             var model = dbSet.Where(m => m.Id == id)

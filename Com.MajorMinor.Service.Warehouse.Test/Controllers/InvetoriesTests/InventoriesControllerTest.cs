@@ -253,7 +253,7 @@ namespace Com.MM.Service.Warehouse.Test.Controllers.InvetoriesTests
 
 
             mockFacade.Setup(x => x.getStock(It.IsAny<int>(),It.IsAny<int>()))
-                .Returns(new List<Inventory>({ Model }));
+                .Returns(Model);
 
             var mockMapper = new Mock<IMapper>();
             mockMapper.Setup(x => x.Map<List<InventoryViewModel>>(It.IsAny<List<Inventory>>()))
@@ -273,7 +273,7 @@ namespace Com.MM.Service.Warehouse.Test.Controllers.InvetoriesTests
 
 
             mockFacade.Setup(x => x.getStock(It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(new List<Inventory>({ Model }));
+                .Returns( Model );
 
             var mockMapper = new Mock<IMapper>();
             mockMapper.Setup(x => x.Map<List<InventoryViewModel>>(It.IsAny<List<Inventory>>()))

@@ -11,5 +11,6 @@ namespace Com.MM.Service.Warehouse.Lib.Interfaces.TransferInterfaces
         Tuple<List<TransferInDoc>, int, Dictionary<string, string>> Read(int Page = 1, int Size = 25, string Order = "{}", string Keyword = null, string Filter = "{}");
         TransferInDoc ReadById(int id);
         Task<int> Create(TransferInDoc model, string username, int clientTimeZoneOffset = 7);
+        Task<int> CreateForPos(TransferInDoc model, string username, int clientTimeZoneOffset = 7);
     }
 }

@@ -100,6 +100,13 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
         }
 
 
+        public Inventory getStockPOS(string sourcecode, string itemCode)
+        {
+            var inventory = dbSet.Where(x => x.StorageCode == sourcecode && x.ItemCode == itemCode).FirstOrDefault();
+            return inventory;
+
+        }
+
 
 
 

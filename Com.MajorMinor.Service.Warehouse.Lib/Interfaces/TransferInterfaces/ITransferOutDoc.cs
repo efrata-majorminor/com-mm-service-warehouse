@@ -15,5 +15,6 @@ namespace Com.MM.Service.Warehouse.Lib.Interfaces.TransferInterfaces
         Tuple<List<TransferOutReadViewModel>, int, Dictionary<string, string>> ReadForRetur(int Page = 1, int Size = 25, string Order = "{}", string Keyword = null, string Filter = "{}");
         TransferOutDoc ReadById(int id);
         MemoryStream GenerateExcel(int id);
+        Task<int> CreateForPOS(TransferOutDoc model2, string username, int clientTimeZoneOffset = 7);
     }
 }
