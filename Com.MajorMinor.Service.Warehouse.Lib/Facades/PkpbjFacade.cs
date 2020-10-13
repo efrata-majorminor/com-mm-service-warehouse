@@ -411,7 +411,7 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
             //await BulkInsert(data, username);
         }
 
-        public SPKDocsViewModel MapToViewModel(List<SPKDocsCsvViewModel> csv, double source, string sourcec, string sourcen, double destination, string destinationc, string destinationn, DateTimeOffset date)
+        public async Task<SPKDocsViewModel> MapToViewModel(List<SPKDocsCsvViewModel> csv, double source, string sourcec, string sourcen, double destination, string destinationc, string destinationn, DateTimeOffset date)
         {
 
             List<SPKDocsItemViewModel> sPKDocsItems = new List<SPKDocsItemViewModel>();
@@ -420,28 +420,92 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
             foreach (var i in csv)
             {
                 var itemx = GetItem(i.code);
-                sPKDocsItems.Add(new SPKDocsItemViewModel
+                if(itemx.Count() == 0 || itemx == null)
                 {
-                    item = new ViewModels.NewIntegrationViewModel.ItemViewModel
-                    {
-                        articleRealizationOrder = i.articleRealizationOrder,
-                        _id = itemx.Id,
-                        code = i.code,
-                        domesticCOGS = Convert.ToDouble(i.domesticCOGS),
-                        domesticSale = Convert.ToDouble(i.domesticSale),
-                        name = i.name,
-                        size = i.size,
-                        uom = i.uom
+                    //ItemViewModel item = new ItemViewModel
+                    //{
+                    //    articleRealizationOrder = i.articleRealizationOrder,
+                    //    code = i.code,
+                    //    domesticCOGS = i.domesticCOGS,
+                    //    domesticRetail = 0,
+                    //    domesticSale = i.domesticSale,
+                    //    domesticWholesale = 0,
+                    //    name = i.name,
+                    //    size = i.size,
+                    //    uom = i.uom,
 
-                    },
-                    quantity = Convert.ToDouble(i.quantity),
-                    remark = ""
-                });
+                    //};
+                    ItemCoreViewModel item = new ItemCoreViewModel
+                    {
+                        dataDestination = new List<ItemViewModelRead>
+                        {
+                           new ItemViewModelRead
+                           {
+                               ArticleRealizationOrder = i.articleRealizationOrder,
+                               code = i.code,
+                               name = i.name,
+                               Size = i.size,
+                               Uom = i.uom,
+                           }
+                        },
+                        DomesticCOGS = Convert.ToDouble(i.domesticCOGS),
+                        DomesticRetail = 0,
+                        DomesticSale = Convert.ToDouble(i.domesticSale),
+                        DomesticWholesale = 0,
+                    };
+                    string itemsUri = "items/finished-goods";
+                    var httpClient = (IHttpClientService)serviceProvider.GetService(typeof(IHttpClientService));
+                    var response = await httpClient.PostAsync($"{APIEndpoint.Core}{itemsUri}", new StringContent(JsonConvert.SerializeObject(item).ToString(), Encoding.UTF8, General.JsonMediaType));
+
+                    response.EnsureSuccessStatusCode();
+
+                    var item2 = GetItem(i.code);
+
+                    sPKDocsItems.Add(new SPKDocsItemViewModel
+                    {
+                        item = new ViewModels.NewIntegrationViewModel.ItemViewModel
+                        {
+                            articleRealizationOrder = i.articleRealizationOrder,
+                            _id = item2.Single()._id,
+                            code = i.code,
+                            domesticCOGS = Convert.ToDouble(i.domesticCOGS),
+                            domesticSale = Convert.ToDouble(i.domesticSale),
+                            name = i.name,
+                            size = i.size,
+                            uom = i.uom
+
+                        },
+                        quantity = Convert.ToDouble(i.quantity),
+                        remark = ""
+                    });
+                }
+                else
+                {
+                    sPKDocsItems.Add(new SPKDocsItemViewModel
+                    {
+                        item = new ViewModels.NewIntegrationViewModel.ItemViewModel
+                        {
+                            articleRealizationOrder = i.articleRealizationOrder,
+                            _id = itemx.Single()._id,
+                            code = i.code,
+                            domesticCOGS = Convert.ToDouble(i.domesticCOGS),
+                            domesticSale = Convert.ToDouble(i.domesticSale),
+                            name = i.name,
+                            size = i.size,
+                            uom = i.uom
+
+                        },
+                        quantity = Convert.ToDouble(i.quantity),
+                        remark = ""
+                    });
+                }
+                
             }
 
             SPKDocsViewModel sPKDocsViews = new SPKDocsViewModel
             {
                 code = GenerateCode("MM-PK/PBJ"),
+                date = date,
                 packingList = csv.FirstOrDefault().PackingList,
                 password = csv.FirstOrDefault().Password,
                 reference = csv.FirstOrDefault().PackingList,
@@ -450,13 +514,13 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
                 Weight = 0,
                 source = new SourceViewModel
                 {
-                    //_id = source.ToString(),
+                    _id = (long)source,
                     code = sourcec,
                     name = sourcen
                 },
                 destination = new DestinationViewModel
                 {
-                    //_id = destination.ToString(),
+                    _id = (long)destination,
                     code = destinationc,
                     name = destinationn
                 },
@@ -467,9 +531,9 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
             return sPKDocsViews;
         }
 
-        private SPKDocsItemViewModel GetItem(string itemCode)
+        private List<ItemCoreViewModel> GetItem(string itemCode)
         {
-            string itemUri = "items/finished-goods/byCode";
+            string itemUri = "items/finished-goods/Code";
             IHttpClientService httpClient = (IHttpClientService)serviceProvider.GetService(typeof(IHttpClientService));
 
             var response = httpClient.GetAsync($"{APIEndpoint.Core}{itemUri}/{itemCode}").Result;
@@ -477,7 +541,7 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
             {
                 var content = response.Content.ReadAsStringAsync().Result;
                 Dictionary<string, object> result = JsonConvert.DeserializeObject<Dictionary<string, object>>(content);
-                SPKDocsItemViewModel viewModel = JsonConvert.DeserializeObject<SPKDocsItemViewModel>(result.GetValueOrDefault("data").ToString());
+                List<ItemCoreViewModel> viewModel = JsonConvert.DeserializeObject<List<ItemCoreViewModel>>(result.GetValueOrDefault("data").ToString());
                 //return viewModel.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Date < doDate.AddDays(1)); ;
                 return viewModel;
             }

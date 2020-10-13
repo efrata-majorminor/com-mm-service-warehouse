@@ -91,7 +91,11 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
                     var SPK = dbContext.SPKDocs.Where(x => x.PackingList == model.Reference).Single();
                     SPK.IsReceived = true;
                     var expedition = dbContext.ExpeditionItems.Where(x => x.PackingList == model.Reference).Single();
-                    expedition.IsReceived = true;
+                    if(expedition != null)
+                    {
+                        expedition.IsReceived = true;
+                    }
+                    
                     var Id = SPK.Id;
                     EntityExtension.FlagForCreate(model, username, USER_AGENT);
                     foreach (var i in model.Items)
