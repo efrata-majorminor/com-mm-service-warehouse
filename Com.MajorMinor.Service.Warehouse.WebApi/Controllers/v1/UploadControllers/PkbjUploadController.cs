@@ -17,6 +17,7 @@ using CsvHelper;
 using Microsoft.AspNetCore.Authorization;
 using static Com.MM.Service.Warehouse.Lib.Facades.PkpbjFacade;
 using Com.MajorMinor.Service.Warehouse.Lib.ViewModels.SpkDocsViewModel;
+using Com.MM.Service.Warehouse.Lib.Interfaces.PkbjInterfaces;
 
 namespace Com.MM.Service.Core.WebApi.Controllers.v1.UploadControllers
 {
@@ -29,11 +30,11 @@ namespace Com.MM.Service.Core.WebApi.Controllers.v1.UploadControllers
     {
         private string ApiVersion = "1.0.0";
         private readonly IMapper mapper;
-        private readonly PkpbjFacade facade;
+        private readonly IPkpbjFacade facade;
         private readonly IdentityService identityService;
         private readonly string ContentType = "application/vnd.openxmlformats";
         private readonly string FileName = string.Concat("Error Log - ", typeof(SPKDocs).Name, " ", DateTime.Now.ToString("dd MMM yyyy"), ".csv");
-        public PkpbjUploadController(IMapper mapper, PkpbjFacade facade, IdentityService identityService) //: base(facade, ApiVersion)
+        public PkpbjUploadController(IMapper mapper, IPkpbjFacade facade, IdentityService identityService) //: base(facade, ApiVersion)
         {
             this.mapper = mapper;
             this.facade = facade;
@@ -58,6 +59,8 @@ namespace Com.MM.Service.Core.WebApi.Controllers.v1.UploadControllers
             try
             {
                 identityService.Username = User.Claims.Single(p => p.Type.Equals("username")).Value;
+                identityService.Token = Request.Headers["Authorization"].FirstOrDefault().Replace("Bearer ", "");
+                identityService.TimezoneOffset = Convert.ToInt32(Request.Headers["x-timezone-offset"]);
                 if (Request.Form.Files.Count > 0)
                 {
                     //VerifyUser();
@@ -79,7 +82,7 @@ namespace Com.MM.Service.Core.WebApi.Controllers.v1.UploadControllers
 
                         List<SPKDocsCsvViewModel> Data = Csv.GetRecords<SPKDocsCsvViewModel>().ToList();
 
-                        SPKDocsViewModel Data1 = facade.MapToViewModel(Data, source, sourcec, sourcen, destination, destinationc, destinationn, date);
+                        SPKDocsViewModel Data1 = await facade.MapToViewModel(Data, source, sourcec, sourcen, destination, destinationc, destinationn, date);
 
                         Tuple<bool, List<object>> Validated = facade.UploadValidate(ref Data, Request.Form.ToList());
 

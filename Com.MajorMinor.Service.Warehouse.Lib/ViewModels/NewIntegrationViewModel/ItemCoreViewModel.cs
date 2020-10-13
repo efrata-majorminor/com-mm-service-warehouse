@@ -6,7 +6,7 @@ namespace Com.MM.Service.Warehouse.Lib.ViewModels.NewIntegrationViewModel
 {
     public class ItemCoreViewModel
     {
-
+        public int _id { get; set; }
         public List<ItemViewModelRead> dataDestination { get; set; }
 
         public ItemArticleColorViewModel color { get; set; }
