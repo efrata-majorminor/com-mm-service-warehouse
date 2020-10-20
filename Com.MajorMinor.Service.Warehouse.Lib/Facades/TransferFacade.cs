@@ -90,10 +90,10 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
                     
                     var SPK = dbContext.SPKDocs.Where(x => x.PackingList == model.Reference).Single();
                     SPK.IsReceived = true;
-                    var expedition = dbContext.ExpeditionItems.Where(x => x.PackingList == model.Reference).Single();
-                    if(expedition != null)
+                    var expedition = dbContext.ExpeditionItems.Where(x => x.PackingList == model.Reference);
+                    if(expedition.Count() != 0)
                     {
-                        expedition.IsReceived = true;
+                        expedition.Single().IsReceived = true;
                     }
                     
                     var Id = SPK.Id;

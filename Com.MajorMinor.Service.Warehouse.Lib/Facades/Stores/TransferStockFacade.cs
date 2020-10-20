@@ -232,7 +232,7 @@ namespace Com.MM.Service.Warehouse.Lib.Facades.Stores
                         SourceCode = storages.Code,
                         SourceName = storages.Name,
                         IsDistributed = true,
-                        IsReceived = true,
+                        IsReceived = false,
                         IsDraft = false,
                         PackingList = packingList2,
                         Reference = codeOut,
