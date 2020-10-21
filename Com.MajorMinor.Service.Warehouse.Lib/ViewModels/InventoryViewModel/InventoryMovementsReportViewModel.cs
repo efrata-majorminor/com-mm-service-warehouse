@@ -14,6 +14,7 @@ namespace Com.MM.Service.Warehouse.Lib.ViewModels.InventoryViewModel
         //public double ItemDomesticCOGS { get; set; }
         //public double ItemDomesticRetail { get; set; }
         public double ItemDomesticSale { get; set; }
+        public DateTimeOffset Date { get; set; }
         //public double ItemDomesticWholeSale { get; set; }
         //public double ItemInternationalCOGS { get; set; }
         //public double ItemInternationalRetail { get; set; }
