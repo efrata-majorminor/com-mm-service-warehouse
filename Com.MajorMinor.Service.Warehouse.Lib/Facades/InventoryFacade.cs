@@ -228,6 +228,7 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
 
                          select new InventoryMovementsReportViewModel
                          {
+                             Date =c.Date,
                              ItemCode = c.ItemCode,
                              ItemName = c.ItemName,
                              ItemArticleRealizationOrder = c.ItemArticleRealizationOrder,
