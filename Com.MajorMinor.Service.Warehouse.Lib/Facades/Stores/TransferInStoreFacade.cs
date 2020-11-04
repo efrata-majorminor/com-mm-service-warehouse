@@ -75,12 +75,24 @@ namespace Com.MM.Service.Warehouse.Lib.Facades.Stores
                 if (/*i.Reference != null || i.Reference != ""*/ !String.IsNullOrWhiteSpace(i.Reference) && i.Reference.Contains("RTT"))
                 {
                     var transferout = dbContext.TransferOutDocs.Where(x => x.Code == i.Reference).FirstOrDefault();
-                    i.SourceId = transferout.SourceId;
-                    i.SourceCode = transferout.SourceCode;
-                    i.SourceName = transferout.SourceName;
-                    i.DestinationId = transferout.DestinationId;
-                    i.DestinationName = transferout.DestinationName;
-                    i.DestinationCode = transferout.DestinationCode;
+                    if (transferout != null)
+                    {
+                        i.SourceId = transferout.SourceId;
+                        i.SourceCode = transferout.SourceCode;
+                        i.SourceName = transferout.SourceName;
+                        i.DestinationId = transferout.DestinationId;
+                        i.DestinationName = transferout.DestinationName;
+                        i.DestinationCode = transferout.DestinationCode;
+                    }
+                    else
+                    {
+                        i.SourceId = 0;
+                        i.SourceCode = "-";
+                        i.SourceName = "-";
+                        i.DestinationId = 0;
+                        i.DestinationName = "-";
+                        i.DestinationCode = "-";
+                    }
                 }
             }
 
