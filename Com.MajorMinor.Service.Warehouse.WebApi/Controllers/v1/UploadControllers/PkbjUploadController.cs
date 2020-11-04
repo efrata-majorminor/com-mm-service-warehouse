@@ -145,6 +145,69 @@ namespace Com.MM.Service.Core.WebApi.Controllers.v1.UploadControllers
             }
         }
 
+        [HttpGet]
+        public IActionResult Get(int page = 1, int size = 25, string order = "{}", string keyword = null, string filter = "{}")
+        {
+            identityService.Username = User.Claims.Single(p => p.Type.Equals("username")).Value;
+
+            try
+            {
+                string filterUser = string.Concat("'CreatedBy':'", identityService.Username, "'");
+                if (filter == null || !(filter.Trim().StartsWith("{") && filter.Trim().EndsWith("}")) || filter.Replace(" ", "").Equals("{}"))
+                {
+                    filter = string.Concat("{", filterUser, "}");
+                }
+                else
+                {
+                    filter = filter.Replace("}", string.Concat(", ", filterUser, "}"));
+                }
+
+                var Data = facade.ReadForUpload(page, size, order, keyword, filter);
+
+                var newData = mapper.Map<List<SPKDocsViewModel>>(Data.Item1);
+
+                List<object> listData = new List<object>();
+                listData.AddRange(
+                    newData.AsQueryable().Select(s => new
+                    {
+                        s._id,
+                        s.packingList,
+                        s.date,
+                        s.password,
+                        s.reference,
+                        SourceCode = s.source.code,
+                        SourceName = s.source.name,
+                        DestinationCode = s.destination.code,
+                        DestinationName = s.destination.name,
+                        s.isReceived,
+                    }).ToList()
+                );
+
+                return Ok(new
+                {
+                    apiVersion = ApiVersion,
+                    statusCode = General.OK_STATUS_CODE,
+                    message = General.OK_MESSAGE,
+                    data = listData,
+                    info = new Dictionary<string, object>
+                    {
+                        { "count", listData.Count },
+                        { "total", Data.Item2 },
+                        { "order", Data.Item3 },
+                        { "page", page },
+                        { "size", size }
+                    },
+                });
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, General.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(General.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
+
     }
 
 

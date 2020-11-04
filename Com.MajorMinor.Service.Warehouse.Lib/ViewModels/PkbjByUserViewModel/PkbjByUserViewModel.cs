@@ -33,9 +33,9 @@ namespace Com.MM.Service.Warehouse.Lib.ViewModels.PkbjByUserViewModel
             {
                 yield return new ValidationResult("Destination is required", new List<string> { "destination" });
             }
-            if (this.reference == null || this.reference == "") {
-                yield return new ValidationResult("Reference is required", new List<string> { "reference" });
-            }
+            //if (this.reference == null || this.reference == "") {
+            //    yield return new ValidationResult("Reference is required", new List<string> { "reference" });
+            //}
 
             int itemErrorCount = 0;
             if (this.items == null || this.items.Count == 0)

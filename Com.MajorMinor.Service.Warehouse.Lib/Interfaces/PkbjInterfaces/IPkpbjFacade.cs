@@ -12,6 +12,7 @@ namespace Com.MM.Service.Warehouse.Lib.Interfaces.PkbjInterfaces
     public interface IPkpbjFacade
     {
         Tuple<List<SPKDocs>, int, Dictionary<string, string>> Read(int Page = 1, int Size = 25, string Order = "{}", string Keyword = null, string Filter = "{}");
+        Tuple<List<SPKDocs>, int, Dictionary<string, string>> ReadForUpload(int Page = 1, int Size = 25, string Order = "{}", string Keyword = null, string Filter = "{}");
         Tuple<List<SPKDocs>, int, Dictionary<string, string>> ReadExpedition(int Page = 1, int Size = 25, string Order = "{}", string Keyword = null, string Filter = "{}");
         SPKDocs ReadById(int id);
         SPKDocs ReadByReference(string reference);

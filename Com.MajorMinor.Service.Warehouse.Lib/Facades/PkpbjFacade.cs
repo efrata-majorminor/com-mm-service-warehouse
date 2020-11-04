@@ -47,13 +47,37 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
 
         public Tuple<List<SPKDocs>, int, Dictionary<string, string>> Read(int Page = 1, int Size = 25, string Order = "{}", string Keyword = null, string Filter = "{}")
         {
-            IQueryable<SPKDocs> Query = this.dbSet.Include(x=>x.Items);
+            IQueryable<SPKDocs> Query = this.dbSet.Include(x=>x.Items).Where(x=>!x.PackingList.Contains("MKN-FN"));
             
             List<string> searchAttributes = new List<string>()
             {
                 "PackingList", "SourceName", "DestinationName"
             };
             
+            Query = QueryHelper<SPKDocs>.ConfigureSearch(Query, searchAttributes, Keyword);
+
+            Dictionary<string, string> FilterDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Filter);
+            Query = QueryHelper<SPKDocs>.ConfigureFilter(Query, FilterDictionary);
+
+            Dictionary<string, string> OrderDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Order);
+            Query = QueryHelper<SPKDocs>.ConfigureOrder(Query, OrderDictionary);
+
+            Pageable<SPKDocs> pageable = new Pageable<SPKDocs>(Query, Page - 1, Size);
+            List<SPKDocs> Data = pageable.Data.ToList<SPKDocs>();
+            int TotalData = pageable.TotalCount;
+
+            return Tuple.Create(Data, TotalData, OrderDictionary);
+        }
+
+        public Tuple<List<SPKDocs>, int, Dictionary<string, string>> ReadForUpload(int Page = 1, int Size = 25, string Order = "{}", string Keyword = null, string Filter = "{}")
+        {
+            IQueryable<SPKDocs> Query = this.dbSet.Include(x => x.Items).Where(x=>x.PackingList.Contains("MKN-FN"));
+
+            List<string> searchAttributes = new List<string>()
+            {
+                "PackingList", "SourceName", "DestinationName"
+            };
+
             Query = QueryHelper<SPKDocs>.ConfigureSearch(Query, searchAttributes, Keyword);
 
             Dictionary<string, string> FilterDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Filter);
@@ -476,6 +500,7 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
 
                         },
                         quantity = Convert.ToDouble(i.quantity),
+                        sendquantity = Convert.ToDouble(i.quantity),
                         remark = ""
                     });
                 }
