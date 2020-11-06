@@ -35,7 +35,7 @@ namespace Com.MM.Service.Warehouse.WebApi.Controllers.v1.InventoryControllers
         #region By User
         [HttpGet("by-user")]
         //public IActionResult GetReport(string no, string unitId, string categoryId, string budgetId, string prStatus, string poStatus, DateTime? dateFrom, DateTime? dateTo, int page, int size, string Order = "{}")
-        public IActionResult GetReport(string storageId, string itemName, int page = 1, int size = 25, string Order = "{}")
+        public IActionResult GetReport(string storageId, string filter, int page = 1, int size = 25, string Order = "{}")
         {
             int offset = Convert.ToInt32(Request.Headers["x-timezone-offset"]);
             identityService.Username = User.Claims.Single(p => p.Type.Equals("username")).Value;
@@ -44,7 +44,7 @@ namespace Com.MM.Service.Warehouse.WebApi.Controllers.v1.InventoryControllers
             try
             {
 
-                var data = facade.GetReport(storageId, itemName, page, size, Order, offset, identityService.Username);
+                var data = facade.GetReport(storageId, filter, page, size, Order, offset, identityService.Username);
 
                 return Ok(new
                 {
