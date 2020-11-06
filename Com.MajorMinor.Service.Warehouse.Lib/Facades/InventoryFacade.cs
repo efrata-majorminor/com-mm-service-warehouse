@@ -101,7 +101,7 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
         }
 
         #region Monitoring By User
-        public IQueryable<InventoriesReportViewModel> GetReportQuery(string storageId, string itemName, int offset, string username)
+        public IQueryable<InventoriesReportViewModel> GetReportQuery(string storageId, string filter, int offset, string username)
         {
             //DateTime DateFrom = dateFrom == null ? new DateTime(1970, 1, 1) : (DateTime)dateFrom;
             //DateTime DateTo = dateTo == null ? DateTime.Now : (DateTime)dateTo;
@@ -109,7 +109,8 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
             var Query = (from a in dbContext.Inventories
                          where a.IsDeleted == false
                          && a.StorageId == Convert.ToInt64((string.IsNullOrWhiteSpace(storageId) ? a.StorageId.ToString() : storageId))
-                         && a.ItemName == (string.IsNullOrWhiteSpace(itemName) ? a.ItemName : itemName)
+                         && a.ItemName.Contains((string.IsNullOrWhiteSpace(filter) ? a.ItemName : filter)) 
+                         || a.ItemArticleRealizationOrder.Contains((string.IsNullOrWhiteSpace(filter) ? a.ItemArticleRealizationOrder : filter))
 
                          select new InventoriesReportViewModel
                          {
@@ -128,9 +129,9 @@ namespace Com.MM.Service.Warehouse.Lib.Facades
         }
 
         //public Tuple<List<InventoryReportViewModel>, int> GetReport(string no, string unitId, string categoryId, string budgetId, string prStatus, string poStatus, DateTime? dateFrom, DateTime? dateTo, int page, int size, string Order, int offset, string username)
-        public Tuple<List<InventoriesReportViewModel>, int> GetReport(string storageId, string itemName, int page, int size, string Order, int offset, string username)
+        public Tuple<List<InventoriesReportViewModel>, int> GetReport(string storageId, string filter, int page, int size, string Order, int offset, string username)
         {
-            var Query = GetReportQuery(storageId, itemName, offset, username);
+            var Query = GetReportQuery(storageId, filter, offset, username);
 
             Dictionary<string, string> OrderDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(Order);
             if (OrderDictionary.Count.Equals(0))
